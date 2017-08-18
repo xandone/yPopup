@@ -13,7 +13,6 @@ import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.FrameLayout;
 import android.widget.PopupWindow;
-import android.widget.Toast;
 
 /**
  * author: xandone
@@ -39,7 +38,6 @@ public abstract class BasePopup extends PopupWindow {
     public static final int DIRECT_RIGHT = 1;
     public static final int DIRECT_BOTTOM = 2;
 
-
     public BasePopup(Activity activity) {
         super(activity);
         this.mAct = activity;
@@ -64,7 +62,7 @@ public abstract class BasePopup extends PopupWindow {
         rootView.setLayoutParams(params);
 
 //        背景图层
-        mBgView = LayoutInflater.from(mAct).inflate(R.layout.activity_main, rootView, false);
+        mBgView = LayoutInflater.from(mAct).inflate(R.layout.bg_view_layout, rootView, false);
         FrameLayout.LayoutParams bgParams = new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
                 ViewGroup.LayoutParams.MATCH_PARENT);
         rootView.addView(mBgView, bgParams);
@@ -91,13 +89,15 @@ public abstract class BasePopup extends PopupWindow {
     public abstract View setLayout();
 
     public void init() {
+        initEmpty();
+
+        setWidth(ViewGroup.LayoutParams.MATCH_PARENT);
+        setHeight(ViewGroup.LayoutParams.MATCH_PARENT);
         setFocusable(true);
         ColorDrawable colorDrawable = new ColorDrawable();
         setBackgroundDrawable(colorDrawable);
 
-        initEmpty();
         initAnim(mAct);
-
     }
 
     public int getAnimStyle() {
