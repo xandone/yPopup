@@ -21,7 +21,7 @@ public class MainActivity extends AppCompatActivity {
                     public View setLayout() {
                         return LayoutInflater.from(MainActivity.this).inflate(R.layout.right_slide_layout, null);
                     }
-                }.show();
+                }.setSlideDirect(BasePopup.DIRECT_RIGHT).show();
                 break;
             case R.id.btn_2:
                 new BasePopup(this) {

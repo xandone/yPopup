@@ -24,8 +24,8 @@ public abstract class BasePopup extends PopupWindow {
     private Activity mAct;
     private int mEmptyW, mEmptyH;
 
-    private float mWidthPersent = 0.8f;
-    private float mHeighPersent = 1f;
+    private float mWidthPersent;
+    private float mHeighPersent;
 
     private Animation mIn;
     private Animation mOut;
@@ -34,6 +34,7 @@ public abstract class BasePopup extends PopupWindow {
 
     private View mContentView;
     private View mBgView;
+    private boolean isShow;
 
     public static final int DIRECT_RIGHT = 1;
     public static final int DIRECT_BOTTOM = 2;
@@ -42,7 +43,6 @@ public abstract class BasePopup extends PopupWindow {
         super(activity);
         this.mAct = activity;
         init();
-        setContentView(setLayout());
     }
 
     @Override
@@ -66,22 +66,35 @@ public abstract class BasePopup extends PopupWindow {
         FrameLayout.LayoutParams bgParams = new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
                 ViewGroup.LayoutParams.MATCH_PARENT);
         rootView.addView(mBgView, bgParams);
+        mBgView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                dismiss();
+            }
+        });
 
 //        下弹框
         if (mEmptyH > 0) {
 //            高度自适应
             FrameLayout.LayoutParams contentParams = new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
-                    ViewGroup.LayoutParams.WRAP_CONTENT);
+                    ViewGroup.LayoutParams.MATCH_PARENT);
             contentParams.gravity = Gravity.BOTTOM;
+            contentParams.topMargin = mEmptyH;
             contentView.setLayoutParams(contentParams);
             rootView.addView(contentView, contentParams);
         } else {
-            FrameLayout.LayoutParams contentParams = new FrameLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT,
+            FrameLayout.LayoutParams contentParams = new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
                     ViewGroup.LayoutParams.MATCH_PARENT);
             contentParams.leftMargin = mEmptyW;
             contentView.setLayoutParams(contentParams);
             rootView.addView(contentView, contentParams);
         }
+        contentView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+            }
+        });
         super.setContentView(rootView);
 
     }
@@ -89,19 +102,23 @@ public abstract class BasePopup extends PopupWindow {
     public abstract View setLayout();
 
     public void init() {
-        initEmpty();
-
         setWidth(ViewGroup.LayoutParams.MATCH_PARENT);
         setHeight(ViewGroup.LayoutParams.MATCH_PARENT);
         setFocusable(true);
         ColorDrawable colorDrawable = new ColorDrawable();
         setBackgroundDrawable(colorDrawable);
-
-        initAnim(mAct);
     }
 
-    public int getAnimStyle() {
-        return R.style.yPopupAnimFromeRight;
+    /**
+     * @param w
+     * @param h
+     */
+    public void initSlide(float w, float h, int style) {
+        mWidthPersent = w;
+        mHeighPersent = h;
+        initEmpty();
+        initAnim(mAct, style);
+        setContentView(setLayout());
     }
 
     public float getmWidthPersent() {
@@ -119,9 +136,9 @@ public abstract class BasePopup extends PopupWindow {
         mEmptyH = (int) (size.y - size.y * mHeighPersent);
     }
 
-    public void initAnim(Context context) {
+    public void initAnim(Context context, int style) {
         int[] attrs = new int[]{android.R.attr.windowEnterAnimation, android.R.attr.windowExitAnimation};
-        TypedArray typedArray = context.obtainStyledAttributes(getAnimStyle(), attrs);
+        TypedArray typedArray = context.obtainStyledAttributes(style, attrs);
         int anim_in = typedArray.getResourceId(0, R.anim.slide_right_in);
         int anim_out = typedArray.getResourceId(1, R.anim.slide_right_out);
 
@@ -129,26 +146,71 @@ public abstract class BasePopup extends PopupWindow {
         mOut = AnimationUtils.loadAnimation(context, anim_out);
         mBgIn = AnimationUtils.loadAnimation(context, R.anim.alpha_in);
         mBgOut = AnimationUtils.loadAnimation(context, R.anim.alpha_out);
-
     }
+
+    public int getAnimStyleRight() {
+        return R.style.yPopupAnimFromeRight;
+    }
+
+    public int getAnimStyleBottom() {
+        return R.style.yPopupAnimFromeBottom;
+    }
+
 
     public void show() {
         mBgView.startAnimation(mBgIn);
         mContentView.startAnimation(mIn);
         mContentView.setVisibility(View.VISIBLE);
         showAtLocation(mAct.getWindow().getDecorView(), Gravity.BOTTOM | Gravity.RIGHT, 0, 0);
+        isShow = true;
+    }
+
+    public void close() {
+        mBgView.startAnimation(mBgOut);
+        mContentView.startAnimation(mOut);
+        mOut.setAnimationListener(new Animation.AnimationListener() {
+            @Override
+            public void onAnimationStart(Animation animation) {
+
+            }
+
+            @Override
+            public void onAnimationEnd(Animation animation) {
+                isShow = false;
+                mContentView.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        dismiss();
+                    }
+                });
+
+            }
+
+            @Override
+            public void onAnimationRepeat(Animation animation) {
+
+            }
+        });
+    }
+
+    @Override
+    public void dismiss() {
+        if (isShow) {
+            close();
+            return;
+        }
+        super.dismiss();
     }
 
     public BasePopup setSlideDirect(int direct) {
         switch (direct) {
             case DIRECT_RIGHT:
+                initSlide(0.6f, 1f, getAnimStyleRight());
                 break;
             case DIRECT_BOTTOM:
-                mWidthPersent = 1f;
-                mHeighPersent = 0.8f;
+                initSlide(1f, 0.4f, getAnimStyleBottom());
                 break;
         }
         return this;
     }
-
 }
