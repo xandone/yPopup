@@ -110,8 +110,8 @@ public abstract class BasePopup extends PopupWindow {
     }
 
     /**
-     * @param w
-     * @param h
+     * @param w 宽的比例
+     * @param h 高的比例
      */
     public void initSlide(float w, float h, int style) {
         mWidthPersent = w;
